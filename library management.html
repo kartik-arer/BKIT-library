@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ffcccb, #add8e6);
+            margin: 0; padding: 20px; color: #333;
+            animation: fadeIn 1s;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        h1 { text-align: center; color: #ff4500; animation: bounce 1s infinite alternate; }
+        @keyframes bounce { 0% { transform: translateY(0); } 100% { transform: translateY(-10px); } }
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
+        th { background: #ff4500; color: white; }
+        td:hover { background: #f0f8ff; transform: scale(1.05); transition: 0.2s; }
+        button { padding: 10px; background: #4682b4; color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #4169e1; }
+        .container { margin-bottom: 20px; padding: 15px; background: #fff; border-radius: 10px; }
+        #searchInput { margin-bottom: 10px; width: calc(100% - 22px); }
+    </style>
+</head>
+<body>
+
+<h1>📚 Library Management System 📚</h1>
+
+<div class="container">
+    <h2>Search Book</h2>
+    <input type="text" id="searchInput" placeholder="Search by Title or Author" oninput="searchBooks()">
+</div>
+
+<div class="container">
+    <h2>Book List</h2>
+    <table id="bookTable">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>ISBN</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<div class="container">
+    <h2>Add Book</h2>
+    <input type="text" id="bookTitle" placeholder="Title">
+    <input type="text" id="bookAuthor" placeholder="Author">
+    <input type="text" id="bookISBN" placeholder="ISBN">
+    <input type="number" id="bookPrice" placeholder="Price">
+    <input type="number" id="bookQuantity" placeholder="Quantity">
+    <button onclick="addBook()">Add Book</button>
+</div>
+
+<div class="container">
+    <h2>Add Student</h2>
+    <input type="text" id="studentName" placeholder="Name">
+    <button onclick="addStudent()">Add Student</button>
+</div>
+
+<div class="container">
+    <h2>Student List</h2>
+    <table id="studentTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+    const books = [], students = [];
+    let editingIndex = -1;
+
+    function addBook() {
+        const title = document.getElementById("bookTitle").value.trim();
+        const author = document.getElementById("bookAuthor").value.trim();
+        const isbn = document.getElementById("bookISBN").value.trim();
+        const price = parseFloat(document.getElementById("bookPrice").value);
+        const quantity = parseInt(document.getElementById("bookQuantity").value);
+        
+        if (title && author && isbn && !isNaN(price) && !isNaN(quantity)) {
+            if (editingIndex > -1) {
+                books[editingIndex] = { title, author, isbn, price, quantity };
+                editingIndex = -1; // Reset editing index after saving
+            } else {
+                books.push({ title, author, isbn, price, quantity });
+            }
+            clearBookInputs();
+            displayBooks();
+        }
+    }
+
+    function clearBookInputs() {
+        document.getElementById("bookTitle").value = '';
+        document.getElementById("bookAuthor").value = '';
+        document.getElementById("bookISBN").value = '';
+        document.getElementById("bookPrice").value = '';
+        document.getElementById("bookQuantity").value = '';
+    }
+
+    function displayBooks(filteredBooks = books) {
+        const tbody = document.querySelector("#bookTable tbody");
+        tbody.innerHTML = filteredBooks.map((b, i) => `
+            <tr>
+                <td>${b.title}</td>
+                <td>${b.author}</td>
+                <td>${b.isbn}</td>
+                <td>$${b.price.toFixed(2)}</td>
+                <td>${b.quantity}</td>
+                <td>
+                    <button onclick="editBook(${i})">Edit</button>
+                    <button onclick="deleteBook(${i})">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function searchBooks() {
+        const query = document.getElementById("searchInput").value.toLowerCase();
+        const filteredBooks = books.filter(b => 
+            b.title.toLowerCase().includes(query) || 
+            b.author.toLowerCase().includes(query)
+        );
+        displayBooks(filteredBooks);
+    }
+
+    function editBook(index) {
+        const book = books[index];
+        document.getElementById("bookTitle").value = book.title;
+        document.getElementById("bookAuthor").value = book.author;
+        document.getElementById("bookISBN").value = book.isbn;
+        document.getElementById("bookPrice").value = book.price;
+        document.getElementById("bookQuantity").value = book.quantity;
+        editingIndex = index; // Set index to edit
+    }
+
+    function deleteBook(index) {
+        books.splice(index, 1);
+        displayBooks();
+    }
+
+    function addStudent() {
+        const name = document.getElementById("studentName").value.trim();
+        if (name) {
+            students.push(name);
+            document.getElementById("studentName").value = '';
+            displayStudents();
+        }
+    }
+    
+    function displayStudents() {
+        const tbody = document.querySelector("#studentTable tbody");
+        tbody.innerHTML = students.map((s, i) => `
+            <tr>
+                <td>${s}</td>
+                <td><button onclick="deleteStudent(${i})">Delete</button></td>
+            </tr>
+        `).join('');
+    }
+    
+    function deleteStudent(index) {
+        students.splice(index, 1);
+        displayStudents();
+    }
+
+    // Preload some engineering books
+    const engineeringBooks = [
+        { title: "Engineering Mechanics: Dynamics", author: "J.L. Meriam, L.G. Kraige", isbn: "978-1119560405", price: 75.00, quantity: 5 },
+        { title: "Fundamentals of Thermodynamics", author: "Richard E. Sonntag, Claus Borgnakke, Gordon J. Van Wylen", isbn: "978-1119472608", price: 90.00, quantity: 3 },
+        { title: "Software Engineering", author: "Ian Sommerville", isbn: "978-0137031495", price: 95.00, quantity: 4 },
+        { title: "Database System Concepts", author: "Abraham Silberschatz", isbn: "978-0078022159", price: 90.00, quantity: 4 },
+        { title: "Operating System Concepts", author: "Abraham Silberschatz, Peter B. Galvin, Greg Gagne", isbn: "978-1119471434", price: 85.00, quantity: 3 },
+        { title: "Computer Networking: A Top-Down Approach", author: "James Kurose, Keith Ross", isbn: "978-0134860518", price: 75.00, quantity: 5 },
+        { title: "Artificial Intelligence: A Modern Approach", author: "Stuart Russell, Peter Norvig", isbn: "978-0134610993", price: 90.00, quantity: 2 },
+        { title: "Data Structures and Algorithm Analysis in C++", author: "Mark Allen Weiss", isbn: "978-0132847376", price: 75.00, quantity: 5 },
+        { title: "Introduction to Programming with C++", author: "Diane Zak", isbn: "978-1305500205", price: 85.00, quantity: 3 },
+        { title: "Machine Learning: A Probabilistic Perspective", author: "Kevin P. Murphy", isbn: "978-0262018029", price: 100.00, quantity: 2 },
+        { title: "Digital Design and Computer Architecture", author: "David Harris, Sarah Harris", isbn: "978-0123944245", price: 85.00, quantity: 4 },
+        { title: "Principles of Compiler Design", author: "A.V. Aho, Monica S. Lam", isbn: "978-0201512457", price: 90.00, quantity: 3 },
+        { title: "The Art of Electronics", author: "Paul Horowitz, Winfield Hill", isbn: "978-0521809269", price: 110.00, quantity: 2 },
+        { title: "Control Systems Engineering", author: "Norman S. Nise", isbn: "978-1119492541", price: 80.00, quantity: 4 },
+        { title: "Electrical Engineering: Principles and Applications", author: "John A. Grotzinger", isbn: "978-0073380648", price: 85.00, quantity: 3 },
+        { title: "Fluid Mechanics", author: "Frank M. White", isbn: "978-0077472114", price: 95.00, quantity: 3 },
+        { title: "Engineering Vibrations", author: "Daniel J. Inman", isbn: "978-0132133002", price: 90.00, quantity: 2 },
+        { title: "Structural Analysis", author: "Russell C. Hibbeler", isbn: "978-0133254422", price: 85.00, quantity: 5 },
+        { title: "Concrete Technology", author: "A. R. Santha Kumar", isbn: "978-0070147553", price: 80.00, quantity: 3 },
+        { title: "Mechanics of Materials", author: "Ferdinand P. Beer, E. Russell Johnston Jr.", isbn: "978-0077444234", price: 90.00, quantity: 4 },
+        { title: "Introduction to Materials Science for Engineers", author: "James F. Shackelford", isbn: "978-0132615283", price: 80.00, quantity: 5 },
+        { title: "Thermodynamics: An Engineering Approach", author: "Yunus Çengel, Michael Boles", isbn: "978-0073375637", price: 90.00, quantity: 4 },
+        { title: "Mechanics of Machines", author: "G. K. Groover", isbn: "978-0070667063", price: 85.00, quantity: 3 },
+        { title: "Engineering Mechanics: Statics", author: "J.L. Meriam, L.G. Kraige", isbn: "978-1119560450", price: 75.00, quantity: 5 },
+        { title: "Introduction to Robotics: Mechanics and Control", author: "John J. Uicker", isbn: "978-0132121597", price: 90.00, quantity: 2 },
+        { title: "Engineering Mathematics", author: "K.A. Stroud", isbn: "978-1138001164", price: 80.00, quantity: 5 },
+        { title: "Numerical Methods for Engineers", author: "B. S. Grewal", isbn: "978-8180549755", price: 85.00, quantity: 3 }
+    ];
+
+    engineeringBooks.forEach(book => books.push(book));
+    displayBooks();
+</script>
+
+</body>
+</html>
